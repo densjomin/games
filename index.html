@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>18+ Рулетка заданий</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    :root {
+      --bg: #050510;
+      --accent: #ff3366;
+      --accent2: #ffcc33;
+      --text: #f7f7f7;
+      --card: #151522;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #221133 0, #050510 60%);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 480px;
+      background: rgba(10, 10, 25, 0.9);
+      border-radius: 18px;
+      padding: 16px 16px 24px;
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(18px);
+    }
+
+    @media (min-width: 768px) {
+      .app {
+        max-width: 640px;
+        padding: 20px 24px 28px;
+      }
+    }
+
+    .app-header {
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    .title {
+      font-size: 22px;
+      letter-spacing: 0.03em;
+      margin-bottom: 4px;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: #aaa;
+    }
+
+    @media (min-width: 768px) {
+      .title { font-size: 26px; }
+      .subtitle { font-size: 14px; }
+    }
+
+    .wheel-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      margin-top: 10px;
+    }
+
+    .wheel-container {
+      position: relative;
+      width: min(72vw, 320px);
+      aspect-ratio: 1 / 1;
+    }
+
+    .wheel {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 8px solid #111;
+      background: conic-gradient(
+        from 0deg,
+        #ff3366 0 12.5%,
+        #ffcc33 12.5% 25%,
+        #33ddff 25% 37.5%,
+        #66ff66 37.5% 50%,
+        #ff3366 50% 62.5%,
+        #ffcc33 62.5% 75%,
+        #33ddff 75% 87.5%,
+        #66ff66 87.5% 100%
+      );
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 0 6px rgba(0, 0, 0, 0.7),
+                  0 12px 30px rgba(0, 0, 0, 0.9);
+      transition: transform 4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+    }
+
+    .wheel-center {
+      width: 34%;
+      height: 34%;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 20%, #fff 0, #ffcc33 35%, #ff3366 80%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #111;
+      font-weight: 700;
+      font-size: 16px;
+      text-shadow: 0 1px 2px rgba(255, 255, 255, 0.7);
+    }
+
+    .pointer {
+      position: absolute;
+      top: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 14px solid transparent;
+      border-right: 14px solid transparent;
+      border-bottom: 22px solid var(--accent);
+      filter: drop-shadow(0 4px 3px rgba(0, 0, 0, 0.7));
+    }
+
+    .spin-btn {
+      margin-top: 6px;
+      padding: 12px 24px;
+      border-radius: 999px;
+      border: none;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #111;
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 0 8px 18px rgba(255, 51, 102, 0.5);
+      transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.2s;
+      min-width: 220px;
+    }
+
+    .spin-btn:active {
+      transform: translateY(1px) scale(0.98);
+      box-shadow: 0 4px 10px rgba(255, 51, 102, 0.3);
+    }
+
+    .spin-btn:disabled {
+      opacity: 0.55;
+      cursor: default;
+      box-shadow: none;
+    }
+
+    .result-card {
+      margin-top: 14px;
+      background: var(--card);
+      border-radius: 16px;
+      padding: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    @media (min-width: 768px) {
+      .result-card {
+        margin-top: 16px;
+        padding: 12px;
+      }
+    }
+
+    .result-title {
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: #bbb;
+      margin-bottom: 6px;
+    }
+
+    .gif-wrapper {
+      width: 100%;
+      max-height: 60vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border-radius: 12px;
+      background: radial-gradient(circle at top, #333 0, #111 60%);
+    }
+
+    .gif-wrapper img {
+      max-width: 100%;
+      max-height: 60vh;
+      display: block;
+    }
+
+    .placeholder {
+      padding: 18px 10px;
+      text-align: center;
+      color: #888;
+      font-size: 14px;
+    }
+
+    .error-text {
+      margin-top: 6px;
+      font-size: 13px;
+      color: #ff7777;
+      text-align: center;
+    }
+
+    .footer {
+      margin-top: 10px;
+      text-align: center;
+      font-size: 11px;
+      color: #666;
+    }
+
+    @media (min-width: 768px) {
+      .footer {
+        font-size: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="app-header">
+      <div class="title">18+ Рулетка заданий</div>
+      <div class="subtitle">Нажми «Крутить» и получи случайный gif‑задание</div>
+    </header>
+
+    <main>
+      <section class="wheel-wrapper">
+        <div class="wheel-container">
+          <div class="pointer"></div>
+          <div id="wheel" class="wheel">
+            <div class="wheel-center">GO</div>
+          </div>
+        </div>
+        <button id="spinBtn" class="spin-btn">Крутить</button>
+        <div id="errorMessage" class="error-text" style="display:none;"></div>
+      </section>
+
+      <section class="result-card">
+        <div class="result-title">Текущее задание</div>
+        <div class="gif-wrapper" id="gifWrapper">
+          <div class="placeholder">
+            Нажми «Крутить», чтобы увидеть задание в виде gif.
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      Личный офлайн‑сайт. Добавь в закладки на смартфоне и ПК.
+    </footer>
+  </div>
+
+  <script>
+    // ВСТАВЬ СЮДА СВОИ ПРЯМЫЕ ССЫЛКИ НА GIF ИЗ GOOGLE DRIVE
+    // Пример одной ссылки:
+    // "https://drive.google.com/uc?export=view&id=ТВОЙ_FILE_ID"
+    const tasks = [
+      // TODO: замени на свои URL:
+      // "https://drive.google.com/uc?export=view&id=FILE_ID_1",
+      // "https://drive.google.com/uc?export=view&id=FILE_ID_2",
+      // "https://drive.google.com/uc?export=view&id=FILE_ID_3",
+    ];
+
+    const wheel = document.getElementById('wheel');
+    const spinBtn = document.getElementById('spinBtn');
+    const gifWrapper = document.getElementById('gifWrapper');
+    const errorMessage = document.getElementById('errorMessage');
+
+    let isSpinning = false;
+    let currentRotation = 0;
+
+    function showError(msg) {
+      errorMessage.textContent = msg;
+      errorMessage.style.display = 'block';
+    }
+
+    function clearError() {
+      errorMessage.style.display = 'none';
+      errorMessage.textContent = '';
+    }
+
+    function showGif(url) {
+      gifWrapper.innerHTML = '';
+      const img = document.createElement('img');
+      img.src = url;
+      img.alt = 'Задание';
+      img.onerror = () => {
+        showError('Не удалось загрузить gif. Проверь доступ к файлу на Google Drive.');
+      };
+      gifWrapper.appendChild(img);
+    }
+
+    function spinWheel() {
+      if (isSpinning) return;
+
+      clearError();
+
+      if (!tasks.length) {
+        showError('Список заданий пуст. Добавь URL gif в массив tasks в коде.');
+        return;
+      }
+
+      isSpinning = true;
+      spinBtn.disabled = true;
+
+      const chosenIndex = Math.floor(Math.random() * tasks.length);
+
+      // Вращаем колесо минимум на 4 полных оборота
+      const baseTurns = 4 * 360;
+      const segmentAngle = 360 / Math.max(tasks.length, 8); // минимум 8 сегментов для красоты
+      const randomOffset = Math.random() * segmentAngle;
+      const targetAngle = baseTurns + chosenIndex * segmentAngle + randomOffset;
+
+      currentRotation = (currentRotation + targetAngle) % 360;
+      wheel.style.transform = `rotate(${currentRotation}deg)`;
+
+      setTimeout(() => {
+        isSpinning = false;
+        spinBtn.disabled = false;
+        const chosenUrl = tasks[chosenIndex];
+        showGif(chosenUrl);
+      }, 4200);
+    }
+
+    spinBtn.addEventListener('click', spinWheel);
+  </script>
+</body>
+</html>
