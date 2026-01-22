@@ -1,1 +1,263 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>18+ Рулетка</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <style>
+    :root {
+      --bg: #050510;
+      --wheel-color: #ff3366;
+      --text: #f7f7f7;
+      --card: #151522;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      touch-action: manipulation;
+    }
+
+    body {
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #221133 0, #050510 70%);
+      color: var(--text);
+      font-family: system-ui, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      gap: 16px;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 420px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    /* GIF ОКНО СВЕРХУ (поменяли местами) */
+    .result-card {
+      background: var(--card);
+      border-radius: 20px;
+      padding: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      flex: 1;
+      max-width: 100%;
+      width: 100%;
+      height: 55vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .result-title {
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--bg);
+      padding: 0 16px;
+      font-size: 13px;
+      color: #ccc;
+      letter-spacing: 0.1em;
+      font-weight: 600;
+    }
+
+    .gif-wrapper {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border-radius: 16px;
+      background: rgba(0, 0, 0, 0.4);
+    }
+
+    .gif-wrapper img {
+      max-width: 98%;
+      max-height: 98%;
+      width: auto;
+      height: auto;
+      border-radius: 12px;
+      box-shadow: 0 10px 35px rgba(0, 0, 0, 0.9);
+      object-fit: contain;
+    }
+
+    .loading, .error {
+      color: #888;
+      font-size: 14px;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .error {
+      color: #ff7777;
+    }
+
+    /* РУЛЕТКА НИЗУ (простая, однотонная) */
+    .wheel-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tap-hint {
+      font-size: 13px;
+      color: #888;
+    }
+
+    .wheel-container {
+      position: relative;
+      width: min(42vw, 180px);
+      height: min(42vw, 180px);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    /* ОДНОТОННАЯ рулетка БЕЗ сегментов и стрелки */
+    .wheel {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 4px solid #333;
+      background: var(--wheel-color); /* ОДИН ЦВЕТ */
+      position: relative;
+      transition: transform 2s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* БЫСТРО 2 сек */
+      box-shadow: 
+        0 0 0 3px rgba(255, 255, 255, 0.15),
+        0 12px 30px rgba(255, 51, 102, 0.4);
+    }
+
+    /* НАДПИСЬ ВНУТРИ рулетки */
+    .wheel-title {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 11px;
+      font-weight: 800;
+      color: #fff;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+      letter-spacing: 0.05em;
+      text-align: center;
+      line-height: 1.1;
+      width: 70%;
+    }
+
+    @media (min-width: 768px) {
+      .wheel-container {
+        width: 220px;
+        height: 220px;
+      }
+      .wheel-title {
+        font-size: 14px;
+      }
+      .result-card {
+        height: 65vh;
+        max-width: 500px;
+      }
+    }
+
+    .wheel:active {
+      transform: scale(0.97);
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- GIF СВЕРХУ -->
+    <div class="result-card">
+      <div class="result-title">🎲 СЛУЧАЙНОЕ ЗАДАНИЕ</div>
+      <div class="gif-wrapper" id="gifWrapper">
+        <div class="loading">Крути рулетку снизу!</div>
+      </div>
+    </div>
+
+    <!-- РУЛЕТКА НИЖЕ -->
+    <div class="wheel-section">
+      <div class="tap-hint">👆 Крути по колесу</div>
+      
+      <div class="wheel-container" id="wheelContainer">
+        <div id="wheel" class="wheel">
+          <div class="wheel-title">🔥 18+<br>РУЛЕТКА 🔥</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ТВОИ Imgur ссылки (РАНДОМ каждый раз)
+    const tasks = [
+      // "https://i.imgur.com/abc123.gif",
+      // "https://i.imgur.com/def456.gif"
+    ];
+
+    const wheelContainer = document.getElementById('wheelContainer');
+    const wheel = document.getElementById('wheel');
+    const gifWrapper = document.getElementById('gifWrapper');
+
+    let isSpinning = false;
+    let currentRotation = 0;
+
+    function showGif() {
+      if (!tasks.length) {
+        gifWrapper.innerHTML = '<div class="error">❌ Добавь Imgur ссылки в массив tasks!</div>';
+        return;
+      }
+      
+      const randomIndex = Math.floor(Math.random() * tasks.length);
+      const url = tasks[randomIndex];
+      
+      gifWrapper.innerHTML = '<div class="loading">🔄 Загружаем...</div>';
+      
+      const img = document.createElement('img');
+      img.src = url;
+      img.onload = () => {
+        gifWrapper.innerHTML = '';
+        gifWrapper.appendChild(img);
+      };
+      img.onerror = () => {
+        gifWrapper.innerHTML = '<div class="error">❌ Ошибка загрузки gif</div>';
+      };
+    }
+
+    function spinWheel() {
+      if (isSpinning || !tasks.length) return;
+      
+      isSpinning = true;
+      gifWrapper.innerHTML = '<div class="loading">🎰 Крутим...</div>';
+
+      // ТОЛЬКО ПО ЧАСОВОЙ + БЫСТРО (2 секунды)
+      const fullTurns = 5 * 360; // 5 оборотов
+      const extraRandom = Math.random() * 360;
+      const totalRotation = fullTurns + extraRandom;
+      
+      currentRotation += totalRotation; // ТОЛЬКО ВПЕРЕД (по часовой)
+      
+      wheel.style.transform = `rotate(${currentRotation}deg)`;
+
+      setTimeout(() => {
+        isSpinning = false;
+        showGif();
+      }, 2000); // БЫСТРО
+    }
+
+    wheelContainer.addEventListener('click', spinWheel);
+    wheelContainer.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      spinWheel();
+    }, { passive: false });
+  </script>
+</body>
+</html>
