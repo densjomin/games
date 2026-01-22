@@ -1,1 +1,282 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>18+ Рулетка</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <style>
+    :root {
+      --bg: #050510;
+      --wheel-man: #4a90e2;
+      --wheel-woman: #ff69b4;
+      --text: #f7f7f7;
+      --card: #151522;
+      --warning: #ff4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #221133 0, #050510 70%);
+      color: var(--text);
+      font-family: system-ui, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      gap: 24px;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 420px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .result-card {
+      background: var(--card);
+      border-radius: 20px;
+      padding: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      width: 100%;
+      height: 60vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .gif-wrapper {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border-radius: 16px;
+      background: rgba(0, 0, 0, 0.4);
+    }
+
+    .gif-wrapper img {
+      max-width: 98%;
+      max-height: 98%;
+      border-radius: 12px;
+      box-shadow: 0 10px 35px rgba(0, 0, 0, 0.9);
+      object-fit: contain;
+    }
+
+    .message {
+      color: #888;
+      font-size: 16px;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .error {
+      color: var(--warning);
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .wheel-container {
+      width: min(42vw, 180px);
+      height: min(42vw, 180px);
+      cursor: pointer;
+      user-select: none;
+      opacity: 1;
+      transition: opacity 0.3s ease;
+    }
+
+    .wheel-container.disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    .wheel {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 4px solid #333;
+      position: relative;
+      transition: transform 2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      box-shadow: 0 12px 30px rgba(74, 144, 226, 0.4);
+    }
+
+    .wheel.man {
+      background: var(--wheel-man);
+      box-shadow: 0 12px 30px rgba(74, 144, 226, 0.4);
+    }
+
+    .wheel.woman {
+      background: var(--wheel-woman);
+      box-shadow: 0 12px 30px rgba(255, 105, 180, 0.4);
+    }
+
+    .gender-icon {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 36px;
+      font-weight: 900;
+      color: #fff;
+      text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
+    }
+
+    @media (min-width: 768px) {
+      .wheel-container {
+        width: 220px;
+        height: 220px;
+      }
+      .gender-icon {
+        font-size: 44px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="result-card">
+      <div class="gif-wrapper" id="gifWrapper">
+        <div class="message">Готово к игре! 👆</div>
+      </div>
+    </div>
+
+    <div class="wheel-section">
+      <div class="wheel-container" id="wheelContainer">
+        <div id="wheel" class="wheel man">
+          <div class="gender-icon" id="genderIcon">🙎‍♂️</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ЗАМЕНИ на свои реальные ссылки Imgur
+    const tasks = {
+      man: [
+        "https://i.imgur.com/man1.gif",
+        "https://i.imgur.com/man2.gif",
+        "https://i.imgur.com/man3.gif"
+      ],
+      woman: [
+        "https://i.imgur.com/woman1.gif",
+        "https://i.imgur.com/woman2.gif",
+        "https://i.imgur.com/woman3.gif"
+      ]
+    };
+
+    let usedTasksMan = [];
+    let usedTasksWoman = [];
+    let isSpinning = false;
+    let currentGender = 'man';
+    let rotationAngle = 0;
+
+    const wheelContainer = document.getElementById('wheelContainer');
+    const wheel = document.getElementById('wheel');
+    const genderIcon = document.getElementById('genderIcon');
+    const gifWrapper = document.getElementById('gifWrapper');
+
+    function hasAvailableTasks(gender) {
+      const allTasks = tasks[gender];
+      const usedTasks = gender === 'man' ? usedTasksMan : usedTasksWoman;
+      return allTasks.length > 0 && usedTasks.length < allTasks.length;
+    }
+
+    function getRandomUnusedTask(gender) {
+      const allTasks = tasks[gender];
+      const usedTasks = gender === 'man' ? usedTasksMan : usedTasksWoman;
+      const available = allTasks.filter(task => !usedTasks.includes(task));
+      
+      if (available.length === 0) return null;
+      
+      const randomIndex = Math.floor(Math.random() * available.length);
+      const task = available[randomIndex];
+      usedTasks.push(task);
+      return task;
+    }
+
+    function checkGameStatus() {
+      const manAvailable = hasAvailableTasks('man');
+      const womanAvailable = hasAvailableTasks('woman');
+      
+      if (!manAvailable || !womanAvailable) {
+        wheelContainer.classList.add('disabled');
+        gifWrapper.innerHTML = `
+          <div class="error message">
+            ✅ Игра окончена!<br>
+            🙎‍♂️ ${usedTasksMan.length}/${tasks.man.length}<br>
+            🙎‍♀️ ${usedTasksWoman.length}/${tasks.woman.length}
+          </div>
+        `;
+        return false;
+      }
+      return true;
+    }
+
+    function showGif() {
+      const taskUrl = getRandomUnusedTask(currentGender);
+      
+      if (!taskUrl) {
+        gifWrapper.innerHTML = '<div class="error message">Нет заданий!</div>';
+        return;
+      }
+      
+      gifWrapper.innerHTML = '<div class="message">Загрузка...</div>';
+      
+      const img = new Image();
+      img.onload = () => {
+        gifWrapper.innerHTML = '';
+        gifWrapper.appendChild(img);
+      };
+      img.onerror = () => {
+        gifWrapper.innerHTML = '<div class="error message">Ошибка загрузки</div>';
+      };
+      img.src = taskUrl;
+    }
+
+    function spinWheel() {
+      if (isSpinning || wheelContainer.classList.contains('disabled')) return;
+      
+      isSpinning = true;
+      gifWrapper.innerHTML = '<div class="message">Крутим...</div>';
+
+      // ПРОСТОЙ поворот - всегда работает
+      const spinAmount = 1800 + Math.random() * 720; // 5-7 оборотов
+      rotationAngle += spinAmount;
+      wheel.style.transform = `rotate(${rotationAngle}deg)`;
+
+      setTimeout(() => {
+        isSpinning = false;
+        
+        // Меняем пол
+        currentGender = currentGender === 'man' ? 'woman' : 'man';
+        wheel.className = `wheel ${currentGender}`;
+        genderIcon.textContent = currentGender === 'man' ? '🙎‍♂️' : '🙎‍♀️';
+        
+        showGif();
+        checkGameStatus();
+      }, 2000);
+    }
+
+    // ПРОСТЫЕ события - работают на всех устройствах
+    wheelContainer.onclick = spinWheel;
+    wheelContainer.ontouchstart = (e) => {
+      e.preventDefault();
+      spinWheel();
+    };
+
+    // Стартовая проверка
+    checkGameStatus();
+  </script>
+</body>
+</html>
